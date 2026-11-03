@@ -1,0 +1,15 @@
+{
+  "name": "rpb-meeting-room",
+  "version": "1.0.0",
+  "private": true,
+  "description": "연구정책국 회의실 예약 웹앱 (Vercel + Postgres)",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node scripts/dev-server.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.0"
+  }
+}
