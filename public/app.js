@@ -172,14 +172,21 @@ function renderNow() {
 }
 
 /* ================= 예약 화면 ================= */
+// 그 달을 담는 데 필요한 주(週)만 달력에 표시(4~6주)
+function monthGrid(month) {
+  const first = month + '-01';
+  const [y, m] = month.split('-').map(Number);
+  const days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const cells = Math.ceil((dow(first) + days) / 7) * 7;
+  const start = addDays(first, -dow(first));
+  return { start, end: addDays(start, cells - 1), cells };
+}
 const slotM = () => S.cfg.slotMinutes;
 const openM = () => toMin(S.cfg.openTime);
 const closeM = () => toMin(S.cfg.closeTime);
 
 async function loadMonth() {
-  const first = S.month + '-01';
-  const start = addDays(first, -dow(first));
-  const end = addDays(start, 41);
+  const { start, end } = monthGrid(S.month);
   const today = kst().date;
   const [grid, todayRes] = await Promise.all([
     api('bookings', 'list', { q: { from: start, to: end } }),
@@ -197,14 +204,13 @@ async function loadMonth() {
 }
 
 function renderCalendar() {
-  const first = S.month + '-01';
-  const start = addDays(first, -dow(first));
+  const { start, cells } = monthGrid(S.month);
   const today = kst().date;
   $('#monthLabel').textContent = `${S.month.slice(0, 4)}년 ${Number(S.month.slice(5))}월`;
   const hours = [];
   for (let m = openM(); m < closeM(); m += 60) hours.push(m);
   let html = '';
-  for (let i = 0; i < 42; i++) {
+  for (let i = 0; i < cells; i++) {
     const d = addDays(start, i);
     const list = S.data.filter((b) => b.date === d);
     const meetings = list.filter((b) => b.kind === 'meeting').length;

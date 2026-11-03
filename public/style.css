@@ -73,6 +73,7 @@ main { padding: 20px 28px 48px; max-width: 1600px; margin: 0 auto; }
 .room-photo span { position: absolute; right: 8px; bottom: 8px; background: #17251fcc; color: #fff; font-size: .75rem; padding: 3px 8px; border-radius: 6px; }
 .notices { margin: 0; padding-left: 18px; font-size: .86rem; color: var(--ink-2); display: grid; gap: 4px; }
 .info-panel .rules { margin: 0; padding: 0; border: 0; }
+.ver { margin: 14px 0 0; font-size: .72rem; color: var(--ink-3); }
 .long-note { display: block; margin-top: 6px; font-size: .84rem; color: #8a5a00; }
 .modal.wide { width: min(980px, 100%); }
 .room-big { display: block; width: 100%; height: auto; border-radius: 10px; margin-bottom: 12px; }
