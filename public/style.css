@@ -36,8 +36,11 @@ button { cursor: pointer; }
   position: sticky; top: 0; z-index: 20;
 }
 .brand { display: flex; align-items: center; gap: 14px; }
-.brand-logo { height: 42px; width: auto; display: block; }
-.brand-text { border-left: 1px solid var(--line); padding-left: 14px; }
+.brand-ci { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #3d3d3d; font-weight: 700; font-size: 1.02rem;
+  letter-spacing: -0.02em; padding: 4px 8px 4px 4px; margin-left: -4px; border-radius: 8px; white-space: nowrap; }
+.brand-ci img { width: 30px; height: auto; display: block; }
+.brand-ci:hover { background: var(--page); }
+.brand h1 { border-left: 1px solid var(--line); padding-left: 14px; white-space: nowrap; }
 .brand-org { display: block; font-size: .8rem; color: var(--ink-3); }
 .brand h1 { font-size: 1.35rem; font-weight: 800; }
 .now { display: flex; align-items: center; gap: 10px; justify-self: center; font-size: .92rem; min-height: 36px;
@@ -57,8 +60,22 @@ main { padding: 20px 28px 48px; max-width: 1600px; margin: 0 auto; }
 .panel.narrow { max-width: 720px; margin: 0 auto; }
 
 /* ---------- 예약 레이아웃 ---------- */
-.book-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
-.cal-panel, .form-panel { position: sticky; top: 84px; }
+.book-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr) 360px; gap: 16px; align-items: start;
+  grid-template-areas: 'cal board form' 'info board form'; }
+.cal-panel { grid-area: cal; }
+.info-panel { grid-area: info; }
+.board-panel { grid-area: board; }
+.form-panel { grid-area: form; position: sticky; top: 84px; }
+.info-panel h2 { margin-bottom: 10px; }
+.info-panel h3 { font-size: .9rem; margin: 14px 0 6px; }
+.room-photo { display: block; width: 100%; padding: 0; border: 0; border-radius: 8px; overflow: hidden; position: relative; background: var(--page); cursor: zoom-in; }
+.room-photo img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.room-photo span { position: absolute; right: 8px; bottom: 8px; background: #17251fcc; color: #fff; font-size: .75rem; padding: 3px 8px; border-radius: 6px; }
+.notices { margin: 0; padding-left: 18px; font-size: .86rem; color: var(--ink-2); display: grid; gap: 4px; }
+.info-panel .rules { margin: 0; padding: 0; border: 0; }
+.long-note { display: block; margin-top: 6px; font-size: .84rem; color: #8a5a00; }
+.modal.wide { width: min(980px, 100%); }
+.room-big { display: block; width: 100%; height: auto; border-radius: 10px; margin-bottom: 12px; }
 
 /* 달력 */
 .cal-head { display: flex; align-items: center; gap: 4px; margin-bottom: 10px; }
@@ -253,18 +270,15 @@ body.board-mode { background: #10201a; color: #eaf2ee; }
 
 /* ---------- 반응형 ---------- */
 @media (max-width: 1280px) {
-  .book-layout { grid-template-columns: 300px minmax(0, 1fr); }
-  .form-panel { grid-column: 1; grid-row: 2; position: static; }
-  .board-panel { grid-row: 1 / span 2; grid-column: 2; }
-  .cal-panel { position: static; }
+  .book-layout { grid-template-columns: 300px minmax(0, 1fr); grid-template-areas: 'cal board' 'form board' 'info board'; }
+  .form-panel { position: static; }
 }
 @media (max-width: 860px) {
   .topbar { grid-template-columns: 1fr; gap: 10px; padding: 12px 16px; position: static; }
   .now { justify-self: stretch; }
   .tabs { overflow-x: auto; }
   main { padding: 14px 12px 40px; }
-  .book-layout { grid-template-columns: 1fr; }
-  .cal-panel, .board-panel, .form-panel { grid-column: 1; grid-row: auto; }
+  .book-layout { grid-template-columns: 1fr; grid-template-areas: 'cal' 'board' 'form' 'info'; }
   .panel { padding: 14px; }
   .dept-legend { justify-content: flex-start; }
   .item { grid-template-columns: 6px 1fr; }
@@ -272,7 +286,9 @@ body.board-mode { background: #10201a; color: #eaf2ee; }
   .bars .b { grid-template-columns: 80px 1fr 90px; }
   .bd-list li { grid-template-columns: 1fr; gap: 4px; }
   .bd-room { font-size: 1.8rem; }
-  .brand-logo { height: 34px; }
+  .brand-ci { font-size: .95rem; }
+  .brand-ci img { width: 26px; }
+  .brand h1 { font-size: 1.15rem; }
   .bd-status-wrap { grid-template-columns: 1fr; }
   .bd-status .big { font-size: 2.2rem; }
 }

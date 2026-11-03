@@ -68,8 +68,9 @@ function toast(msg, type = '') {
   toastTimer = setTimeout(() => (t.hidden = true), type === 'error' ? 5000 : 3200);
 }
 let modalOnClose = null;
-function openModal(title, html, onClose, { celebrate = false } = {}) {
+function openModal(title, html, onClose, { celebrate = false, wide = false } = {}) {
   $('.modal').classList.toggle('celebrate', celebrate);
+  $('.modal').classList.toggle('wide', wide);
   $('#modalTitle').textContent = title;
   $('#modalBody').innerHTML = html;
   $('#modal').hidden = false;
@@ -277,7 +278,8 @@ function renderSelection() {
     const go = $('#mobileGo');
     go.textContent = `${fromMin(sel.start)}~${fromMin(sel.end)} 신청서 작성하기`;
     go.hidden = $('#tab-book').hidden;
-    box.innerHTML = `<strong>${fmtDate(S.date)} ${fromMin(sel.start)}~${fromMin(sel.end)}</strong>${fmtDur(sel.end - sel.start)}`;
+    box.innerHTML = `<strong>${fmtDate(S.date)} ${fromMin(sel.start)}~${fromMin(sel.end)}</strong>${fmtDur(sel.end - sel.start)}` +
+      (sel.end - sel.start >= 240 ? '<span class="long-note">긴 시간을 예약하시네요. 다른 과도 쓸 수 있도록 회의에 꼭 필요한 시간만큼만 잡아 주세요.</span>' : '');
   } else {
     $('#mobileGo').hidden = true;
     box.className = 'sel-summary';
@@ -304,7 +306,7 @@ function slotAt(x, y) {
   return el && el.classList && el.classList.contains('slot') ? el : null;
 }
 function canPick(lo, hi) {
-  return lo >= minStart() && hi <= closeM() && hi - lo <= S.cfg.maxHours * 60 && rangeFree(lo, hi);
+  return lo >= minStart() && hi <= closeM() && (!S.cfg.maxHours || hi - lo <= S.cfg.maxHours * 60) && rangeFree(lo, hi);
 }
 
 function bindBooking() {
@@ -734,6 +736,9 @@ function fillStatic() {
   const c = S.cfg;
   document.title = `${c.roomName} 예약`;
   $('#roomName').textContent = c.roomName;
+  $('#orgName').textContent = c.orgName;
+  $('#roomPhoto').alt = `${c.roomName} 전경`;
+  $('#notices').innerHTML = c.notices.map((t) => `<li>${esc(t)}</li>`).join('');
   const f = $('#bookForm');
   f.start.innerHTML = timeOptions(c.openTime, fromMin(closeM() - slotM()), slotM());
   f.end.innerHTML = timeOptions(fromMin(openM() + slotM()), c.closeTime, slotM());
@@ -748,7 +753,8 @@ function fillStatic() {
   $('#statsForm').month.value = kst().date.slice(0, 7);
   $('#rules').innerHTML = [
     `이용 시간 ${c.openTime}~${c.closeTime}, ${c.slotMinutes}분 단위`,
-    `1회 최대 ${c.maxHours}시간, 오늘부터 ${c.maxAdvanceDays}일 앞까지`,
+    c.maxHours ? `1회 최대 ${c.maxHours}시간` : '1회 이용 시간 제한 없음(하루 종일 회의도 가능)',
+    `오늘부터 ${c.maxAdvanceDays}일 앞까지 예약`,
     `매주 반복 예약은 최대 ${c.maxRepeatWeeks}주`,
     c.capacity ? `수용 인원 ${c.capacity}명` : '',
     c.roomLocation ? `위치: ${c.roomLocation}` : '',
@@ -776,6 +782,19 @@ async function initApp() {
   bindBooking();
   bindAdmin();
   $('#mineForm').addEventListener('submit', (e) => { e.preventDefault(); const n = e.target.name.value.trim(); if (n) loadMine(n); });
+  // CI를 누르면 처음 화면(예약하기, 오늘)으로
+  $('#homeLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    closeModal();
+    $('.tabs button[data-tab="book"]').click();
+    S.sel = null;
+    selectDate(kst().date);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  $('#roomPhotoBtn').onclick = () => openModal(`${S.cfg.roomName} 전경`,
+    `<img class="room-big" src="${esc(S.cfg.roomPhoto)}" alt="${esc(S.cfg.roomName)} 전경" />
+     <ul class="notices">${S.cfg.notices.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>
+     <div class="actions"><button class="primary" data-close>닫기</button></div>`, null, { wide: true });
   S.date = kst().date;
   S.month = S.date.slice(0, 7);
   try {
