@@ -48,7 +48,7 @@ function launcher() {
     // 알림을 누르면 주소가 #mine 으로 바뀜 → 첫 화면에 있어도 바로 내 번호표로
     addEventListener('hashchange', () => { const h = location.hash.slice(1); if (['apply', 'mine', 'board'].includes(h)) enter(h); });
     $('#l-rooms').addEventListener('click', e => {
-      if (api.mode === 'demo') { e.preventDefault(); toast('미리보기에서는 회의실 예약을 열 수 없습니다', '실제 주소에서 열어 주세요.'); }
+      if (api.mode === 'demo' && api.noServer) { e.preventDefault(); toast('미리보기에서는 회의실 예약을 열 수 없습니다', '실제 주소에서 열어 주세요.'); }
       else ss.set('jas-mode', null);
     });
     (async () => { try { const me = await api.op('me'); if (me.member) uid = api.mode === 'demo' ? api.demo.uid : me.uid; } catch {} })();

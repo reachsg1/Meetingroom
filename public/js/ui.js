@@ -9,10 +9,12 @@ export const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;'
 export async function loadApi() {
   const cfg = self.BOGO_CONFIG || {};
   let note = '서버 없이 이 브라우저에서만 동작';
+  let server = false; // /api/state 가 답했으면 서버(회의실 API 포함)는 있는 것
   if (!cfg.demo && /^https?:$/.test(location.protocol)) {
     try {
       const r = await fetch((cfg.apiBase || '') + '/api/state');
       const j = await r.json().catch(() => null);
+      if (j) server = true;
       if (j && j.configured) return (await import('./api-server.js')).create(cfg, j);
       if (j && j.configured === false) note = '저장소(Upstash Redis) 연결 전이라 이 브라우저에서만 동작';
       else if (j && j.error) {
@@ -23,6 +25,7 @@ export async function loadApi() {
   }
   const api = (await import('./api-demo.js')).create();
   api.demoNote = note;
+  api.noServer = !server; // 미리보기(서버 없음)일 때만 회의실 메뉴를 막음
   return api;
 }
 
