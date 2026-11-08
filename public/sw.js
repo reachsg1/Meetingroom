@@ -1,0 +1,47 @@
+// 서비스 워커: 앱 설치(홈 화면) + 화면이 꺼져 있어도 푸시 알림 표시 (표준 웹 푸시, 외부 서비스 없음)
+const CACHE = 'bogo-v18';
+const SHELL = ['/', '/index.html', '/css/app.css', '/js/app.js', '/js/ui.js', '/js/logic.js', '/js/config.js', '/js/api-server.js', '/js/orgs.js', '/manifest.webmanifest', '/icons/icon-192.png'];
+
+self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
+self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
+// 화면 파일: 네트워크 우선, 끊기면 저장해 둔 화면. 서버 요청(/api/)은 저장하지 않음.
+self.addEventListener('fetch', e => {
+  const u = new URL(e.request.url);
+  if (e.request.method !== 'GET' || u.origin !== location.origin || u.pathname.startsWith('/api/')) return;
+  e.respondWith(fetch(e.request).then(r => { const c = r.clone(); caches.open(CACHE).then(x => x.put(e.request, c)).catch(() => {}); return r; }).catch(() => caches.match(e.request).then(r => r || caches.match('/index.html'))));
+});
+
+// 푸시 받기 → 알림 표시 + 열려 있는 앱 화면에도 전달
+self.addEventListener('push', e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { title: '줄안서', body: e.data ? e.data.text() : '' }; }
+  e.waitUntil((async () => {
+    // 테스트 알림: 받았다는 사실을 서버에 바로 알림(화면이 꺼져 있거나 아이폰에서 화면 전달이 안 돼도 확인되도록)
+    if (d.kind === 'test' && d.nonce) {
+      try { await fetch('/api/op', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ op: 'pushAck', nonce: d.nonce }) }); } catch {}
+    }
+    const list = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const c of list) c.postMessage({ type: 'bogo-push', data: d });
+    await self.registration.showNotification(d.title || '줄안서', {
+      body: d.body || '',
+      icon: '/icons/icon-192.png', badge: '/icons/badge-72.png',
+      tag: d.kind === 'test' ? 'bogo-test' : 'bogo', renotify: true,
+      requireInteraction: d.kind === 'call',
+      vibrate: [200, 100, 200, 100, 300],
+      data: { url: d.kind === 'test' ? '/' : '/#mine' },
+    });
+  })());
+});
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url || '/#mine';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+    // 이미 열린 화면이 있으면 그 화면을 알림 대상(내 번호표)으로 옮긴 뒤 앞으로 가져옴(첫 화면·회의실 화면에 있어도)
+    for (const c of list) if (c.url.startsWith(self.location.origin) && 'focus' in c) {
+      if ('navigate' in c && new URL(c.url).hash !== new URL(url, self.location.origin).hash) c.navigate(url).catch(() => {});
+      return c.focus();
+    }
+    return self.clients.openWindow(url);
+  }));
+});
+// 브라우저가 구독을 바꾸면 다음에 앱을 열 때 다시 등록됩니다(resumePush).
