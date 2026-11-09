@@ -312,7 +312,7 @@ function renderApplyParts(q, s, t0) {
   if (ec.dataset.key !== ekey) {
     ec.dataset.key = ekey;
     ec.innerHTML = showE ? `<div class="emg-line"><span>국장님이 직접 부르셨나요?</span><button type="button" class="emg-btn" data-emerg="1">긴급 호출</button></div>
-      <p class="emg-help">국장님 긴급 호출을 받은 경우에만 누르세요. 순서와 관계없이 바로 '보고 중'이 되고, 대기 중인 분들의 호출은 잠시 멈춥니다.${mt && L.OPEN.includes(mt.status) ? ` 지금 가진 ${L.pad(mt.no)}번 번호표로 들어갑니다.` : ' 위의 이름·부서를 먼저 입력해 주세요.'}</p>` : '';
+      <p class="emg-help">국장님 긴급 호출을 받은 경우에만 누르세요. 순서와 관계없이 바로 '보고 중'이 되고, 대기 중인 분들의 호출은 잠시 멈춥니다.${mt && L.OPEN.includes(mt.status) ? ` 지금 가진 ${L.pad(mt.no)}번 번호표로 들어갑니다.` : ' 이름·부서는 비워도 됩니다(입력하면 비서실 화면에 함께 보입니다).'}</p>` : '';
   }
 }
 
@@ -441,11 +441,10 @@ document.addEventListener('click', async e => {
   }
   const mt = myTicket();
   const data = mt && L.OPEN.includes(mt.status) ? { ticketId: mt.id } : { name: $('#f-name').value.trim(), dept: $('#f-dept').value.trim(), topic: $('#f-topic').value.trim() };
-  if (!data.ticketId && (!data.name || !data.dept)) { delete b.dataset.armed; $('#f-err').textContent = '긴급 호출도 이름과 부서는 입력해 주세요.'; $('#f-name').focus(); return; }
   b.disabled = true;
   try {
     await api.op('emergency', data);
-    if (data.name) ls.set('bogo-draft', { name: data.name, dept: data.dept });
+    if (data.name && data.dept) ls.set('bogo-draft', { name: data.name, dept: data.dept });
     toast('긴급 호출 · 보고 중으로 표시했습니다', '대기 중인 분들의 호출을 잠시 멈췄습니다. 나오면서 "보고 완료"를 눌러 주세요.', 'call');
     go('mine');
   } catch (err) { showError(err); b.disabled = false; delete b.dataset.armed; }

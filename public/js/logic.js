@@ -399,7 +399,9 @@ export function actEmergency(input, ctx, tickets, sIn, dayDoc, now) {
   const updates = [], notices = [];
   if (mine) updates.push({ id: mine.id, patch: { ...go, flags: { ...(mine.flags || {}), call: true, next: true, soon: true } } });
   else {
-    const r = actIssue({ ...input, app: true }, { ...ctx, deviceVerified: true }, tickets, sIn, dayDoc, now);
+    // 긴급 호출은 이름·부서를 비워도 됩니다(국장님이 직접 부르신 경우라 바로 들어가야 하므로).
+    const name = String(input.name || '').trim() || '긴급 호출', dept = String(input.dept || '').trim() || '미입력';
+    const r = actIssue({ ...input, name, dept, app: true }, { ...ctx, deviceVerified: true }, tickets, sIn, dayDoc, now);
     create = { ticket: { ...r.ticket, ...go, flags: { call: true, next: true, soon: true } }, priv: r.priv };
   }
   for (const o of T) {

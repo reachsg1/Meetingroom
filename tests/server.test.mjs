@@ -346,7 +346,8 @@ test('개선: 긴급 호출 · 보고 시작 불가 · 보고 종료 · 설치 �
   // ③ 보고 중인 분이 있을 때 긴급 호출: 보고 중인 분은 그대로
   await op('a', { op: 'start', ticketId: byNo(1).id });
   setNow(T('09:22'));
-  await op('f', { op: 'emergency', name: '바', dept: '총괄' });
+  await op('f', { op: 'emergency' }); // 이름·부서 없이도 긴급 호출 가능
+  { const d = day(); const et = d.tickets.find(t => t.emergency && t.no === Math.max(...d.tickets.map(x => x.no))); assert.equal(et.dept, '미입력'); assert.equal(d.priv[et.id].name, '긴급 호출'); }
   assert.equal(byNo(1).status, 'in_progress', '보고 중인 분은 그대로');
   setNow(T('09:30')); await op('a', { op: 'complete', ticketId: byNo(1).id });
   assert.equal(byNo(2).status, 'waiting', '긴급 보고가 남아 있으면 다음 분 호출 안 함');
